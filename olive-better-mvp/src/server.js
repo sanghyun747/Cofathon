@@ -48,7 +48,30 @@ export function createAppServer(options = {}) {
   const state = options.state ?? createInitialState();
 
   const getDraft = (id) => state.drafts.get(id || state.latestDraftId) ?? null;
-  const visiblePublished = () => state.published ? expandDraftForClient(state.published) : null;
+  const visiblePublished = () => {
+    if (!state.published) return null;
+    const products = new Map(state.published.products.map((product) => [product.id, product]));
+    return {
+      id: state.published.id,
+      status: "published",
+      publishedAt: state.published.publishedAt,
+      sections: state.published.sections.map((section) => ({
+        id: section.id,
+        type: section.type,
+        title: section.title,
+        subtitle: section.subtitle,
+        cta: section.cta,
+        well: section.well,
+        productId: section.productId,
+        productIds: Array.isArray(section.productIds) ? [...section.productIds] : undefined,
+        products: Array.isArray(section.productIds) ? section.productIds.map((id) => products.get(id)).filter(Boolean) : undefined,
+        signals: Array.isArray(section.signals) ? section.signals.map((signal) => ({ id: signal.id, title: signal.title, source: signal.source, url: signal.url, publishedAt: signal.publishedAt, adoptedReason: signal.adoptedReason })) : undefined,
+        reasons: Array.isArray(section.reasons) ? [...section.reasons] : undefined,
+        style: section.style ? { tone: section.style.tone, imageUrl: section.style.imageUrl } : undefined,
+        reactionBoostApplied: Boolean(section.reactionBoostApplied)
+      }))
+    };
+  };
   const publishedSectionIds = () => new Set((state.published?.sections ?? []).map((section) => section.id));
   const publishedProductIds = () => new Set((state.published?.sections ?? []).flatMap((section) => section.productIds ?? []));
 
@@ -103,8 +126,11 @@ export function createAppServer(options = {}) {
       if (!state.published) return sendJson(res, 409, { ok: false, error: "발행된 기획전이 없습니다." });
       const type = String(body.type || "");
       if (!new Set(["click", "like", "purchase"]).has(type)) return sendJson(res, 400, { ok: false, error: "지원하지 않는 반응 유형입니다." });
-      if (body.sectionId && !publishedSectionIds().has(body.sectionId)) return sendJson(res, 400, { ok: false, error: "발행본에 없는 화면 영역입니다." });
-      if (body.productId && !publishedProductIds().has(body.productId)) return sendJson(res, 400, { ok: false, error: "발행본에 노출되지 않은 상품입니다." });
+      if (typeof body.sectionId !== "string" || typeof body.productId !== "string") return sendJson(res, 400, { ok: false, error: "반응에는 노출 영역과 상품이 모두 필요합니다." });
+      if (!publishedSectionIds().has(body.sectionId)) return sendJson(res, 400, { ok: false, error: "발행본에 없는 화면 영역입니다." });
+      if (!publishedProductIds().has(body.productId)) return sendJson(res, 400, { ok: false, error: "발행본에 노출되지 않은 상품입니다." });
+      const matchedSection = state.published.sections.find((section) => section.id === body.sectionId);
+      if (!Array.isArray(matchedSection?.productIds) || !matchedSection.productIds.includes(body.productId)) return sendJson(res, 400, { ok: false, error: "상품이 해당 화면 영역에 노출되지 않았습니다." });
       const product = state.published.products.find((item) => item.id === body.productId);
       const reaction = { id: `reaction-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`, type, customerId: String(body.customerId || "guest").slice(0, 80), productId: body.productId || null, sectionId: body.sectionId || null, well: product?.well ?? null, createdAt: new Date().toISOString() };
       state.reactions.push(reaction);
@@ -142,4 +168,3 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const host = process.env.HOST || "127.0.0.1";
   createAppServer().listen(port, host, () => console.log(`Olive Better MD automation: http://${host}:${port}`));
 }
-

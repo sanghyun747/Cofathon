@@ -25,10 +25,15 @@ export function parseJsonObject(text) {
 }
 
 function normalizeCopy(copy) {
+  if (!copy || typeof copy !== "object" || Array.isArray(copy)) return null;
+  if (typeof copy.title !== "string" || typeof copy.subtitle !== "string" || typeof copy.cta !== "string") return null;
+  const title = safePlainText(copy.title, 48);
+  const subtitle = safePlainText(copy.subtitle, 120);
+  if (!title || !subtitle) return null;
   const cta = safePlainText(copy?.cta, 40);
   return {
-    title: safePlainText(copy?.title, 48) || "오늘의 웰니스 루틴",
-    subtitle: safePlainText(copy?.subtitle, 120) || "나에게 맞는 건강 관리 상품을 확인해 보세요.",
+    title,
+    subtitle,
     cta: cta.length <= 16 && /보기|만나|확인|시작|살펴|담기|가기/.test(cta) && !/[,/]/.test(cta) ? cta : "기획전 상품 보기"
   };
 }
@@ -67,7 +72,9 @@ async function callOpenAI(prompt, env, fetchImpl) {
     method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${env.OPENAI_API_KEY}` },
     body: JSON.stringify({ model, temperature: 0.5, max_tokens: 220, messages: [{ role: "system", content: "Return only valid JSON." }, { role: "user", content: prompt }] })
   }, fetchImpl);
-  return { provider: `openai-compatible:${model}`, copy: normalizeCopy(parseJsonObject(payload.choices?.[0]?.message?.content)) };
+  const copy = normalizeCopy(parseJsonObject(payload.choices?.[0]?.message?.content));
+  if (!copy) throw new Error("OpenAI 호환 LLM 문구 JSON에 필수 필드가 없습니다.");
+  return { provider: `openai-compatible:${model}`, copy };
 }
 
 async function callGemini(prompt, env, fetchImpl) {
@@ -79,7 +86,9 @@ async function callGemini(prompt, env, fetchImpl) {
     method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } })
   }, fetchImpl);
   const text = payload.candidates?.[0]?.content?.parts?.map((part) => part.text).join("\n");
-  return { provider: `google-gemini:${model}`, copy: normalizeCopy(parseJsonObject(text)) };
+  const copy = normalizeCopy(parseJsonObject(text));
+  if (!copy) throw new Error("Gemini 문구 JSON에 필수 필드가 없습니다.");
+  return { provider: `google-gemini:${model}`, copy };
 }
 
 async function callAnthropic(prompt, env, fetchImpl) {
@@ -91,7 +100,9 @@ async function callAnthropic(prompt, env, fetchImpl) {
     method: "POST", headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({ model, max_tokens: 260, system: "Return only valid JSON.", messages: [{ role: "user", content: prompt }] })
   }, fetchImpl);
-  return { provider: `anthropic-compatible:${model}`, copy: normalizeCopy(parseJsonObject(payload.content?.map((part) => part.text).join("\n"))) };
+  const copy = normalizeCopy(parseJsonObject(payload.content?.map((part) => part.text).join("\n")));
+  if (!copy) throw new Error("Anthropic 문구 JSON에 필수 필드가 없습니다.");
+  return { provider: `anthropic-compatible:${model}`, copy };
 }
 
 export async function generateHeroCopy(context, options = {}) {
