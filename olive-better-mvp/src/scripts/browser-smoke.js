@@ -7,7 +7,7 @@ import { createAppServer } from "../server.js";
 import { cleanTrendSignals } from "../core/trends.js";
 
 const runFile = promisify(execFile);
-const cli = process.env.AGENT_BROWSER_CLI || "D:/tools/agent-browser-cli/node_modules/agent-browser/bin/agent-browser.js";
+const cli = process.env.AGENT_BROWSER_CLI || "agent-browser";
 const session = `olive-better-${process.pid}`;
 const screenshots = new URL("../../screenshots/", import.meta.url);
 await mkdir(screenshots, { recursive: true });
@@ -25,7 +25,9 @@ function heroFixture() {
 }
 
 async function browser(...args) {
-  const { stdout, stderr } = await runFile(process.execPath, [cli, "--session", session, "--json", ...args], {
+  const executable = cli.toLowerCase().endsWith(".js") ? process.execPath : cli;
+  const cliArgs = cli.toLowerCase().endsWith(".js") ? [cli] : [];
+  const { stdout, stderr } = await runFile(executable, [...cliArgs, "--session", session, "--json", ...args], {
     timeout: 30000,
     windowsHide: true,
     env: { ...process.env, AGENT_BROWSER_ALLOWED_DOMAINS: "127.0.0.1", AGENT_BROWSER_DEFAULT_TIMEOUT: "20000" }
