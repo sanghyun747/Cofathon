@@ -1,0 +1,23 @@
+{
+  "schema_version": "cofathon-run-receipt-v1",
+  "task_version": "",
+  "config_version": "",
+  "source_hash": "",
+  "data_hash_or_identifier": "",
+  "command": [],
+  "exit_code": null,
+  "metric": {
+    "name": "",
+    "value": null,
+    "split": "",
+    "sample_count": null,
+    "seed": null
+  },
+  "wall_time_seconds": null,
+  "peak_memory_mb": null,
+  "champion_sha256": "",
+  "failed_checks": [],
+  "known_limitations": [],
+  "secret_scan_status": "",
+  "submission_acknowledgement": ""
+}

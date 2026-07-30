@@ -1,0 +1,32 @@
+{
+  "schema_version": "cofathon-task-contract-v1",
+  "official_task_verbatim": "",
+  "user": "",
+  "business_objective": "",
+  "business_kpi": "",
+  "query": "",
+  "value": "",
+  "label_or_target": "",
+  "input_contract": "",
+  "output_contract": "",
+  "hard_constraints": [],
+  "assumptions": [],
+  "unknowns": [],
+  "non_goals": [],
+  "offline_metrics": [],
+  "data_split": "",
+  "baseline": "",
+  "acceptance": {
+    "functional": [],
+    "quality": [],
+    "latency_cost": [],
+    "robustness": [],
+    "security_privacy": []
+  },
+  "probe_axes": {
+    "technique_evidence": [],
+    "intent_evidence": [],
+    "cognition_evidence": [],
+    "communication_evidence": []
+  }
+}

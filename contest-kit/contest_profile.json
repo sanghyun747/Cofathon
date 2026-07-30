@@ -1,0 +1,49 @@
+{
+  "schema_version": "cofathon-contest-profile-v1",
+  "event_date": "2026-07-30",
+  "build_start": null,
+  "submission_deadline": null,
+  "duration_minutes": 225,
+  "post_submission_question_minutes": 3,
+  "extension_assumed": false,
+  "duration_source": "waiting-room screenshot captured 2026-07-30",
+  "max_active_heavy_workers": 1,
+  "max_consecutive_non_improving_experiments": 2,
+  "no_new_model_family_after_minute": 100,
+  "no_new_feature_after_minute": 175,
+  "champion_freeze_minute": 195,
+  "bundle_ready_minute": 215,
+  "phases": [
+    {"id": "intake", "minutes": 10, "gate": "problem_and_acceptance_frozen"},
+    {"id": "environment_smoke", "minutes": 5, "gate": "runtime_and_preview_path_proven"},
+    {"id": "vertical_slice", "minutes": 40, "gate": "working_end_to_end_result"},
+    {"id": "core_automation", "minutes": 80, "gate": "main_business_flow_and_evaluator_pass"},
+    {"id": "usable_surface", "minutes": 40, "gate": "browser_flow_and_error_handling_pass"},
+    {"id": "hardening", "minutes": 20, "gate": "edge_and_fallback_checks_pass"},
+    {"id": "freeze", "minutes": 12, "gate": "champion_selected_and_regression_pass"},
+    {"id": "fresh_audit", "minutes": 8, "gate": "fresh_reproduction_or_optional_g1_audit_pass"},
+    {"id": "submission", "minutes": 10, "gate": "submission_acknowledged"}
+  ],
+  "human_gates": [
+    "problem_and_metric_freeze",
+    "baseline_acceptance",
+    "champion_promotion",
+    "final_submission"
+  ],
+  "required_evidence": [
+    "problem.md",
+    "data-audit.md",
+    "experiments.jsonl",
+    "decisions.md",
+    "risks.md",
+    "run-receipt.json",
+    "debate-card.md"
+  ],
+  "forbidden_bundle_entries": [
+    ".env",
+    ".venv",
+    "__pycache__",
+    ".git",
+    "node_modules"
+  ]
+}
