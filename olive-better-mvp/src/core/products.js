@@ -11,7 +11,7 @@ export function isFunctionalAllowed(product, rules) {
   if (!functional) return false;
   return allowed.some((item) => {
     const value = compact(item);
-    return functional === value || functional.includes(value) || value.includes(functional);
+    return functional === value || functional.includes(value);
   });
 }
 
@@ -121,4 +121,3 @@ export function rankProducts(products, context = {}) {
     .sort((a, b) => b.score - a.score || b.product.reviews - a.product.reviews)
     .map((item) => item.product);
 }
-
